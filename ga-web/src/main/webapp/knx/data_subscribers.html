@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>KNX - Data subscribers</title>
+	<link href="css/style.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
+    <script type="text/javascript">
+		var xToken =  $.cookie("knxcookie");
+		var idCounter = 0; // valeurs de id qui servira de faire un lien entre le referer à supprimer et le tableau contenant les urls / referers pour la suppression des referers
+		var DNSZone = ""; // contiendra la DNSZone (nécessaire pour la requête de suppression des referers)
+		urls = new Array(); // tableau qui contiendra les urls pour la suppressions des referers
+		referers = new Array(); // idem (pour les referers)
+		$(document).ready(function() {
+			$('#popupBg').css("display", "block");
+			// fonction permettant de récupérer la liste des groupes
+			// entrée : -
+			// sortie : JSON, avec lequel on crée les <option> du <select> groups
+			$.ajax({
+				type: 'GET',
+				url: '/admin/storage/groups',
+				headers: {
+					'X-Token': xToken
+				},
+				statusCode: {
+        			401: function () {
+						window.location = "index.html";
+        			},
+        			500: function () {
+						window.location = "index.html";
+					}
+    			},
+				success: function(data, status, response) {
+					$('#popupBg').css("display", "none");
+					// on crée les <option> avec les données reçues en retour
+					var output = "";
+					$.each(data, function(key, value) {
+						output += '<option value="' + value.Id + '">' + value.Group + '</option>';
+					});
+					$('#groups').html(output);
+				},
+				error: function (response, status, error) {
+					alert('Error ' + error);
+				},
+			});
+			
+			// fonction permettant de récupérer la DNSZone (nécessaire pour la requête de suppression de referers)
+			// entrée : -
+			// sortie : JSON, dont on stocke le DNSZone dans la variable globale du mm nom
+			$.ajax({
+				type: 'GET',
+				url: '/admin/config/',
+				headers: {
+					'X-Token': xToken
+				},
+				statusCode: {
+        			401: function () {
+						window.location = "index.html";
+        			},
+        			500: function () {
+						window.location = "index.html";
+					}
+    			},
+				success: function(data, status, response) {
+					DNSZone = data.DNSZone;
+				},
+				error: function (response, status, error) {
+					//alert('Error ' + error);
+				},
+			});
+			
+			// fonction permettant de récupérer la liste des datapoints / d'afficher les infos pour chacun des groupes
+			// appelée lors d'un changement de valeur sélectionnée dans le <select> groups 
+			// entrée : <Group> (récupéré du <select>)
+			// sortie : JSON, avec lequel on affiche les datapoints + tableau(x) de referer(s)
+			$('#groups').change(function() {
+				var group = $(this).text();
+				var url = '/admin/storage/datapoints?group=' + $(this).val();
+				$.ajax({
+					type: 'GET',
+					url: url,
+					headers: {
+						'X-Token': xToken
+					},
+					dataType: 'json',
+					success: function(data, status, response) {
+						var output = "";
+						var maxDays = 0;
+						$.each(data, function(key, value) {	
+							// on détermine le "Max days data stored" en parcourant tout le json		
+							if (value['Subscribers']) {
+	                    		$.each(value['Subscribers'],function(key, subscribers) {
+	                        		if (maxDays < subscribers['Days']) {
+										maxDays = subscribers['Days'];
+									};
+	                    		});
+							};
+							// on transforme la date JSON en jour, mois, année
+							var lastRead = value['LastRead'];
+							var lastReadDay = lastRead.slice(8, 10);
+							var lastReadMonth = lastRead.slice(5, 7);
+							var lastReadYear = lastRead.slice(0, 4);
+							// on crée l'affichage des données au moyen d'HTML
+							output += '<h3>Datapoint : <span class="dark">' + value['DPTName'] + '</span> (<span class="dark">' + value['DPTNumber'] + '</span>)</h3>';
+							output += '<p>Max days data stored : <span class="dark">' + maxDays + '</span></p>';
+							output += '<p>Last read : <span class="dark">' + lastReadDay + '.' + lastReadMonth + '.' + lastReadYear + '</span></p>';
+							if (value['Subscribers']) {
+								output += '<table class="refererTable">';
+								output += '<tr>';
+								output += '<th class="referer">Referer</th>';
+								output += '<th class="days">Days</th>';
+								output += '<th class="delete"></th>';
+								output += '</tr>';
+	                    		$.each(value['Subscribers'],function(key, subscribers) {
+									output += '<tr>';
+									output += '<td class="referer">> ' + subscribers['Referer'] + '</td>';
+                    				output += '<td class="days">' + subscribers['Days'] + '</td>';
+									output += '<td class="delete"><input type="button" name="' + idCounter + '" id="' + idCounter + '" value="X" onclick="deleteReferer($(this).attr(\'id\'));" title="Delete this referer" class="button"></td>';
+									output += '</tr>';
+									// au fur et à mesure, on crée un tableau avec pour chaque referer, l'url qui pourra servir à sa suppression
+									urls[idCounter] = 'http://' + group + '.' + DNSZone + '/' + value['DPTName'] + '/storage';
+									referers[idCounter] = subscribers['Referer'];
+									idCounter +=1;
+	                    		});
+								output += '</table>';
+							};
+						});
+						$('#groupsInfosDiv').html(output);
+					},
+					error: function (response, status, error) {
+						alert('Error ' + error);
+					},
+				});
+			});
+		});
+		
+		// fonction permettant de supprimer un referer
+		// entrée : id (correspond à l'id du bouton "avec la croix rouge")
+		// sortie : -
+		function deleteReferer(id) {
+			// on récupère l'url et le referer, en fonction de l'id sélectionné
+			var url = urls[id];
+			var referer = referers[id];
+			$.ajaxSetup({
+        "beforeSend": function(xhr) {
+            // Works fine.
+            xhr.setRequestHeader("X-Requested-With", {
+                toString: function() {
+                    return "";
+                }
+            });
+            // Logs error on Chrome (probably others) as "Refused to set unsafe header "Referer".
+            xhr.setRequestHeader("Referer", {
+                toString: function() {
+                    return "";
+                }
+            });
+        }
+    });
+			$.ajax({
+				type: 'DELETE',
+				url: url,
+				headers: {
+					'X-Token': xToken,
+					'Referer': referer
+				},
+				success: function(data, status, response) {
+					alert('URL : ' + url + ' et referer : ' + referer);
+					//location.reload();
+				},
+				error: function (response, status, error) {
+					alert('Error --> URL : ' + url + ' et referer : ' + referer);
+					//alert('Error ' + error);
+				},
+			});
+		};
+    </script>
+</head>
+
+<body>
+  <div id="container"><!-- 	début de la page	-->
+    	<!--	titre et navigation	-->
+        <header> 
+        	<img src="img/logo_knx.gif" height="40" alt="KNX">
+        	<img src="img/eif.png" height="40" alt="EIF">
+    		<h1>KNX - WoT Gateway</h1>
+      	</header>
+		<nav>
+        	<ul>
+            	<li><a href="configuration.html">Configuration</a></li>
+                <li><a class="selected" href="data_subscribers.html">Data subscribers</a></li>
+                <li><a href="log.html">Log</a></li>
+                <li><a id="logout" href="index.html">Logout</a></li>
+            </ul>
+            <div class="clear"></div>
+		</nav>
+        <!--	contenu de la page	-->
+        <div id="content">
+        	<h2>Data subscribers</h2>
+            <div id="groupsDiv" class="leftColumn">
+            	<h3>Groups</h3>
+            	<select name="groups" id="groups" size="3" style="width: 100%">
+            		<option>No groups available now</option> 	
+        		</select>
+            </div>
+            <div id="groupsInfosDiv" class="rightColumn">
+            	<h3>No datapoint's informations available now</h3>
+                <p>Please select a group in the menu on the left side</p>
+            </div>
+            <div class="clear"></div>
+        </div>
+	</div>
+  </body>
+</html>

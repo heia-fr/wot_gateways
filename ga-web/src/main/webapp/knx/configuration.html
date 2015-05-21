@@ -1,0 +1,430 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>KNX - Configuration</title>
+	<link href="css/style.css" rel="stylesheet" type="text/css">
+    <link href="css/jquery-ui-timepicker-addon.css" rel="stylesheet" type="text/css">
+	<link href="css/ui-lightness/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.10.3.custom.min.js"></script>
+   	<script type="text/javascript" src="js/jquery-ui-timepicker-addon.js"></script>
+    <script type="text/javascript" src="js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
+    <script type="text/javascript">
+		$(document).ready(function() {
+			// on stocke dans "xToken" la valeur du cookie (X-Token)
+			var xToken =  $.cookie("knxcookie");
+			
+			getIpGateway(); // on crée la liste des IPs
+			getConfig(); // on récuère la configuration stockée et on l'introduit dans les champs du formulaire
+			
+			setDate();
+			
+			// si l'on clique sur le bouton "refresh", on rappelle la fonction "getIpGateway()"
+			$('#refreshIpGateway').click(function() {
+				getIpGateway();
+			});
+			
+			// fonction permettant de récupérer la configuration stockée dans la mémoire
+			// entrée : -
+			// sortie : JSON, que l'on dispose dans les champs du formulaire
+			function getConfig() {
+				$.ajax({
+					type: 'GET',
+					url: '/admin/config/',
+					headers: {
+						'X-Token': xToken
+					},
+					statusCode: {
+						401: function () {
+							window.location = "index.html";
+						},
+						500: function () {
+							window.location = "index.html";
+						}
+					},
+					success: function(data, status, response) {
+						// on introduit dans les champs du formulaire les valeurs reçues
+						$('#manualIpGateway').val(data.IPGateway);
+						$('#knxLocalAddress').val(data.KNXAddr);
+						$('#dnsServerIp').val(data.DNSIP);
+						$('#dnsMainZone').val(data.DNSZone);
+						$('#dataStorage').attr('checked', true);
+						$('#databaseUser').val(data.DBUser);
+						$('#databasePassword').val(data.DBPwd);
+						
+						// si <DataStore> est égal à true, l'utilisateur peut librement modifier le user et le password de la DB, sinon pas.
+						if (!(data.Storage)) {
+							$('#databaseUser').prop('disabled', true);
+							$('#databasePassword').prop('disabled', true);
+							// on décoche la checkbox
+							$('#dataStorage').attr('checked', false);
+						};
+					},
+					error: function (response, status, error) {
+						//alert('Error ' + error);
+					},
+				});
+			};
+			
+			// fonction permettant de récupérer la liste des IPs (Gateways)
+			// entrée : -
+			// sortie : JSON, avec lequel on crée des <option> dans le <select> "ipGateway"
+			function getIpGateway() {
+				// on affiche la progressbar
+				$('#popupBg').css("display", "block");
+				$.ajax({
+					type: 'GET',
+					url: '/admin/config/gateways',
+					headers: {
+						'X-Token': xToken
+					},
+					statusCode: {
+						// en cas d'erreur 401 ou 500, on redirige l'utilisateur vers la page de connexion
+						401: function () {
+							window.location = "index.html";
+						},
+						500: function () {
+							window.location = "index.html";
+						}
+					},
+					success: function(data, status, response) {
+						// on crée les <option> du <select> à partir des données reçues
+						var output = "";
+						output += '<option id="option0" value="0" disabled="disabled">Select an IP</option>';
+						$.each(data, function(key, value) {
+							output += '<option>' + value.IP + '</option>';
+						});
+						output += '<option id="option1" value="1">Manual IP</option>';
+						$('#ipGateway').html(output);
+						$('#popupBg').css("display", "none");
+						// si l'on a reçu une valeur pour l'adresse IP manuelle, on attribue la veleur "selected" à l'<option> "Manual IP" du <select>
+						if (!($('#manualIpGateway').val() == "")) {
+							$('#ipGateway option[value="1"]').attr('selected','selected');
+						};
+					},
+					error: function (response, status, error) {
+					},
+				});
+			}
+			
+			// fonction permettant d'envoyer la configuration à la resource (/admin/config)
+			// appellée lors d'un clic sur le bouton "Send"
+			// entrée : valeurs du formulaire de configuration
+			// sortie : JSON
+			$('#sendConfig').click(function() {
+				// on affiche la progressbar
+				$('#popupBg').css("display", "block");
+				// on crée des variables qui vont contenir les valeurs du formulaire, que l'on introduira par la suite dans un tableau associatif
+				var IPGateway = '';
+				// si l'utilisateur n'a pas spécifié d'ip manuelle, on envoie l'adresse ip sélectionnée dans le <select>
+				if ($('#ipGateway').val() == 1) {
+					IPGateway = $('#manualIpGateway').val();
+				} else {
+					IPGateway = $('#ipGateway').val();
+				};
+				var KNXAddr = $('#knxLocalAddress').val();
+				var DNSIP = $('#dnsServerIp').val();
+				var DNSZone = $('#dnsMainZone').val();
+				var Storage = '';
+				var DBUser = '';
+				var DBPwd = '';
+				// même principe que pour l'ip; on envoie les valeurs pour la DB que si la case est cochée
+				// si ce n'est pas le cas, on envoie rien ("") et false pour Storage
+				if ($('#dataStorage').is(':checked')) {
+					Storage = true;
+					DBUser = $('#databaseUser').val();
+					DBPwd = $('#databasePassword').val();
+				} else {
+					Storage = false;
+					DBUser = '';
+					DBPwd = '';
+				};
+				// on crée un tableau associatif, que l'on transformera en JSON dans la fonction AJAX
+				var config = {
+					IPGateway: IPGateway,
+					KNXAddr: KNXAddr,
+					DNSIP: DNSIP,
+					DNSZone: DNSZone,
+					Storage: Storage,
+					DBUser: DBUser,
+					DBPwd: DBPwd
+				};
+				// requête AJAX
+				$.ajax({
+					type: 'POST',
+					url: '/admin/config',
+					headers: {
+						'X-Token': xToken
+					},
+					contentType: 'application/json',
+					data: JSON.stringify(config),// on convertie le tableau associatif en JSON
+					success: function(data, status, response) {
+						$('#popupBg').css("display", "none"); // on cache la progressbar
+						//console.log(data);
+					},
+					error: function (response, status, error) {
+						alert('Error ' + error);
+					},
+				});
+			});
+			
+			// fonction permettant d'uploader un fichier de configuration (format knxproj)
+			// entrée : un fichier knxproj
+			// sortie : idem
+			$('#loadConfig').click(function() {
+				// Source : http://blog.w3villa.com/websites/uploading-filesimage-with-ajax-jquery-without-submitting-a-form/
+				var ext = $('#knxProjFile').val().split('.').pop().toLowerCase();  
+    			// on vérifie l'extension du fichier				
+				if (ext == "knxproj") {
+					$('#popupBg').css("display", "block");
+					var fd = new FormData(document.getElementById("configUpload"));
+					$.ajax({
+						url: "/admin/knxproj",
+						type: "POST",
+						headers: {
+							'X-Token': xToken
+						},
+						data: fd,
+						timeout: 180000,
+						processData: false,  // tell jQuery not to process the data
+						contentType: false,   // tell jQuery not to set contentType
+						success: function(data, status, response) {
+							$('#popupBg').css("display", "none"); // on cache la progressbar
+							alert('The configuration has been sent successfully.');
+						},
+						error: function (response, status, error) {
+							$('#popupBg').css("display", "none"); // on cache la progressbar
+							alert('Error ' + error);
+						},
+					});
+				} else if (ext == "xml") {
+					$('#popupBg').css("display", "block");
+					var fd = new FormData(document.getElementById("configUpload"));
+					$.ajax({
+						url: "/admin/dpfile",
+						type: "POST",
+						headers: {
+							'X-Token': xToken
+						},
+						data: fd,
+						timeout: 180000,
+						processData: false,  // tell jQuery not to process the data
+						contentType: false,   // tell jQuery not to set contentType
+						success: function(data, status, response) {
+							$('#popupBg').css("display", "none"); // on cache la progressbar
+							alert('The configuration has been sent successfully.');
+						},
+						error: function (response, status, error) {
+							$('#popupBg').css("display", "none"); // on cache la progressbar
+							alert('Error ' + error);
+						},
+					});
+				} else {
+					$('#knxProjFile').val("");  
+        			alert('Please enter a knxproj or xml file !');  
+				};
+				
+			});
+			
+			function setDate() {
+				$.ajax({
+					url: "/admin/date",
+					type: "GET",
+					headers: {
+						'X-Token': xToken
+					},
+					statusCode: {
+						401: function () {
+							window.location = "index.html";
+						},
+						500: function () {
+							window.location = "index.html";
+						}
+					},
+					success: function(data, status, response) {
+						// set the clock
+						$('#clock').datetimepicker({
+							timeFormat: 'HH:mm:ss',
+							stepHour: 1,
+							stepMinute: 1,
+							stepSecond: 1
+						});
+						
+						$('#clock').val(data.month + '/' + data.day + '/' + data.year + ' ' + data.hours + ':' + data.min + ':' + data.sec);
+					},
+					error: function (response, status, error) {
+					},
+				});
+			}
+			
+			$('#postDate').click(function() {
+				var date = $('#clock').val();
+				var data = {
+					month: date.substring(0,2),
+					day: date.substring(3,5),
+					year: date.substring(6,10),
+					hours: date.substring(11,13),
+					min: date.substring(14,16),
+					sec: date.substring(17,19)
+				};
+
+				$.ajax({
+					type: 'POST',
+					url: '/admin/date',
+					contentType: 'application/json',
+					data: JSON.stringify(data),
+					headers: {
+						'X-Token': xToken
+					},
+					statusCode: {
+						401: function () {
+							window.location = "index.html";
+						},
+						500: function () {
+							window.location = "index.html";
+						},
+					},
+					success: function(data, status, response) {
+					},
+					error: function (response, status, error) {
+					},
+				});
+			});
+		});
+    </script>
+</head>
+
+<body>
+	<div id="popupBg">
+    	<div id="popupContainer">
+        	<h2>It's loading ...</h2>
+        	<progress id="progressBar" max="100">
+  				<strong>It's loading ....</strong>
+			</progress>
+        </div>
+    </div>
+	<div id="container"><!-- 	début de la page	-->
+    	<!--	titre et navigation	-->
+        <header> 
+        	<img src="img/logo_knx.gif" height="40" alt="KNX">
+        	<img src="img/eif.png" height="40" alt="EIF">
+    		<h1>KNX - WoT Gateway</h1>
+      	</header>
+		<nav>
+        	<ul>
+            	<li><a class="selected" href="configuration.html">Configuration</a></li>
+                <li><a href="data_subscribers.html">Data subscribers</a></li>
+                <li><a href="log.html">Log</a></li>
+                <li><a id="logout" href="index.html">Logout</a></li>
+            </ul>
+            <div class="clear"></div>
+		</nav>
+        <!--	contenu de la page	-->
+        <div id="content">
+        	<h2>Configuration</h2>
+            <table id="configurationTable">
+            	<tr>
+                	<td class="configurationLabel">
+                   		<label for="ipGateway">IP Gateway</label>
+                    </td>
+                    <td  class="configurationInput">
+                    	<select name="ipGateway" id="ipGateway">
+                        	<option>No IP available</option> 	
+                        </select>
+                        <input type="button" name="refreshIpGateway" id="refreshIpGateway" value="Refresh" class="button">
+                    </td>
+                    <td class="space"></td>
+               		<td class="configurationLabel">
+                    	<label for="manualIpGateway">or set manually</label>
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="manualIpGateway" id="manualIpGateway" type="text" placeholder="Manual IP ...">
+                    </td>
+				</tr>
+            	<tr>
+                	<td class="configurationLabel">
+                    	<label for="knxLocalAddress">KNX local address</label>
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="knxLocalAddress" id="knxLocalAddress" type="text" placeholder="KNX local address ...">
+                    </td>
+                    <td class="space"></td>
+               		<td class="configurationLabel">
+                    </td>
+                    <td class="configurationInput">
+                    </td>
+				</tr>
+             	<tr>
+                	<td class="configurationLabel">
+                    	<label for="dnsServerIp">DNS server IP</label>
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="dnsServerIp" id="dnsServerIp" type="text" placeholder="DNS server IP ...">
+                    </td>
+                    <td class="space"></td>
+               		<td class="configurationLabel">
+                    	<label for="dnsMainZone">DNS main zone</label>
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="dnsMainZone" id="dnsMainZone" type="text" placeholder="KNS main zone ...">
+                    </td>
+				</tr>
+             	<tr>
+                	<td class="configurationLabel">
+                    	<input name="dataStorage" id="dataStorage" type="checkbox" value="" checked>
+                        <label for="dataStorage">Data storage</label>
+                    </td>
+                    <td class="configurationInput">
+                    </td>
+                    <td class="space"></td>
+               		<td class="configurationLabel">
+                    </td>
+                    <td class="configurationInput">
+                    </td>
+				</tr>
+             	<tr>
+                	<td class="configurationLabel">
+                    	<label id="databaseUserLabel" for="databaseUser">Database user</label>
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="databaseUser" id="databaseUser" type="text" placeholder="Database user ...">
+                    </td>
+                    <td class="space"></td>
+               		<td class="configurationLabel">
+                    	<label id="databasePasswordLabel" for="databasePassword">Database password</label>
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="databasePassword" id="databasePassword" type="password" placeholder="Database password ...">
+                    </td>
+				</tr>
+             	<tr>
+                	<td class="configurationLabel">
+                    </td>
+                    <td class="configurationInput">
+                    </td>
+                    <td class="space"></td>
+               		<td class="configurationLabel">
+                    </td>
+                    <td class="configurationInput">
+                    	<input name="sendConfig" id="sendConfig" type="button" value="Send" class="button">
+                    </td>
+				</tr>
+        	</table>
+        	<form enctype="multipart/form-data" method="post" name="configUpload" id="configUpload">
+  				<label>KNXproj or xml
+                 file:</label>
+  				<input type="file" name="knxProjFile" id="knxProjFile" required />
+                <input name="loadConfig" id="loadConfig" class="button" type="button" value="Load">
+			</form>
+            <br />
+            <form name="datepicker" id="datepicker">
+            	<label>Date - time : </label>
+            	<input id="clock" type="text"/>
+				<input type="button" id="postDate" value="Save">
+            </form>
+     	</div>
+	</div><!--	fin de la page	-->
+</body>
+</html>

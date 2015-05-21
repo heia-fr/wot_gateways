@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnOcean - Data Visualization</title>
+    <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+    <link href="css/bootstrap-responsive.css" rel="stylesheet" type="text/css">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery-latest.js"></script>
+    <script src="js/jquery.cookie.js"></script>
+    <script src="js/highstock.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#connectedUser').html($.cookie('EnoUsr'));
+                        
+            displayGraphs();
+        });
+    </script>
+    <script src="js/script.js"></script>
+    <!-- HTML5 shim for IE backwards compatibility -->
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<!-- Début de la barre de navigation -->
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container-fluid">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="#">EnOcean</a>
+            <div class="nav-collapse collapse">
+                <p class="navbar-text pull-right">
+                    Logged in as <a href="" class="navbar-link"><span id="connectedUser">Username</span></a> (<a onClick="logout();">disconnect</a>)
+                </p>
+                <ul class="nav">
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li class="active"><a href="data_visualization.html">Data visualization</a></li>
+                    <li><a href="user.html">Users management</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin de la barre de navigation -->
+<!-- Début du conteneur de la page -->
+<div class="container-fluid">
+    <div class="row-fluid">
+        <!-- Début du menu vertical -->
+        <div class="span3">
+            <img class="visible-desktop" src="img/logo_enocean.jpg" alt="EnOcean" />
+            <br />
+            <img class="visible-desktop" src="img/logo_eif.png" alt="EIF" />
+        </div>
+        <!-- Fin du menu vertical -->
+        <!-- Début du contenu de la page -->
+        <div class="span9">
+            <div class="row-fluid">
+            <legend>Data vizualisation</legend>
+                <form id="selection">
+                    <div id="graphs">
+                        <!--  graphs -->
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Fin du contenu de la page -->
+    </div>
+    <!-- Fin de la ligne principale -->
+</div>
+<!-- Fin du conteneur de la page -->
+<script src="js/bootstrap.min.js"></script>
+</body>
+</html>

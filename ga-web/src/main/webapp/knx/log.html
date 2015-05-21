@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>KNX - Log</title>
+	<link href="css/style.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
+    <script type="text/javascript">
+    	$(document).ready(function() {
+			var xToken =  $.cookie("knxcookie");
+			// on affiche la progressbar
+			$('#popupBg').css("display", "block");
+			
+			// fonction permettant de récupérer les logs
+			// entrée : -
+			// sortie : logs (payload)
+			$.ajax({
+				type: 'GET',
+				url: '/admin/log',
+				headers: {
+					'X-Token': xToken
+				},
+				statusCode: {
+        			401: function () {
+						window.location = "index.html";
+        			},
+        			500: function () {
+						window.location = "index.html";
+					}
+    			},
+				success: function(data, status, response) {
+					var output = data;
+					$('#logArea').html(output);
+					$('#popupBg').css("display", "none");
+				},
+				error: function (response, status, error) {
+					//alert('Error ' + error);
+				},
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<div id="popupBg">
+    	<div id="popupContainer">
+        	<h2>It's loading ...</h2>
+        	<progress id="progressBar" max="100">
+  				<strong>It's loading ....</strong>
+			</progress>
+        </div>
+    </div>
+    <div id="container"><!-- 	début de la page	-->
+    	<!--	titre et navigation	-->
+        <header> 
+        	<img src="img/logo_knx.gif" height="40" alt="KNX">
+        	<img src="img/eif.png" height="40" alt="EIF">
+    		<h1>KNX - WoT Gateway</h1>
+      	</header>
+		<nav>
+        	<ul>
+            	<li><a href="configuration.html">Configuration</a></li>
+                <li><a href="data_subscribers.html">Data subscribers</a></li>
+                <li><a class="selected" href="log.html">Log</a></li>
+                <li><a id="logout" href="index.html">Logout</a></li>
+            </ul>
+            <div class="clear"></div>
+		</nav>
+        <!--	contenu de la page	-->
+        <div id="content">
+        	<h2>Log</h2>
+            <textarea name="logArea" id="logArea"  placeholder="The log data ..."></textarea>
+        </div>
+	</div><!--	fin de la page	-->
+</body>
+</html>

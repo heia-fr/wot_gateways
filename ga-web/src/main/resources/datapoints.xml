@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datapoints xmlns:b="http://knx.org/xml/project/11">
+  <datapoint stateBased="true" name="Lampefenêtre" desc="Channel B, status" mainNumber="12" dptID="12.001" priority="Low" actionName="DPT_Value_4_Ucount" actionDesc="counter pulses (unsigned)" dptDesc="4-byte unsigned value" dptBitsSize="32" location="05.00.C.EIA-FR">
+    <knxAddress type="group">2</knxAddress>
+    <expiration timeout="0" />
+    <updatingAddresses />
+    <invalidatingAddresses />
+  </datapoint>
+  <datapoint stateBased="true" name="Lampecouloir" desc="Channel A, status" mainNumber="12" dptID="12.001" priority="Low" actionName="DPT_Value_4_Ucount" actionDesc="counter pulses (unsigned)" dptDesc="4-byte unsigned value" dptBitsSize="32" location="05.00.C.EIA-FR">
+    <knxAddress type="group">1</knxAddress>
+    <expiration timeout="0" />
+    <updatingAddresses />
+    <invalidatingAddresses />
+  </datapoint>
+  <datapoint stateBased="true" name="Lampecouloir" desc="Switch, Channel A" mainNumber="1" dptID="1.001" priority="Low" actionName="DPT_Switch" actionDesc="on/off" dptDesc="1-bit" dptBitsSize="1" location="05.00.C.EIA-FR">
+    <knxAddress type="group">1</knxAddress>
+    <expiration timeout="0" />
+    <updatingAddresses />
+    <invalidatingAddresses />
+  </datapoint>
+  <datapoint stateBased="true" name="Lampefenêtre" desc="Switch, Channel B" mainNumber="1" dptID="1.001" priority="Low" actionName="DPT_Switch" actionDesc="on/off" dptDesc="1-bit" dptBitsSize="1" location="05.00.C.EIA-FR">
+    <knxAddress type="group">2</knxAddress>
+    <expiration timeout="0" />
+    <updatingAddresses />
+    <invalidatingAddresses />
+  </datapoint>
+</datapoints>

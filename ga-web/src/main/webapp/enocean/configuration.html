@@ -1,0 +1,440 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>EnOcean  - Configuration</title>
+	<link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap-responsive.css" rel="stylesheet" type="text/css">
+   	<link href="css/style.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery-latest.js"></script>
+    <script src="js/jquery.cookie.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#connectedUser').html($.cookie('EnoUsr'));
+			
+			// hide alerts
+			$('#alertConfigSuccess').hide();
+			$('#alertConfigError').hide();
+			$('#alertGroupSuccess').hide();
+			$('#alertGroupError').hide();
+			$('#alertNoSensorError').hide();
+			$('#alertNoGroupError').hide();
+						
+			// load the config and groups at startup
+			getConfig();
+			getGroups();
+			
+			// onChange, update the displayed group
+			$('#groups').change(function() {
+				// set the hidden input with the ID of the selected group
+				$('#groupId').val($('#groups').children(":selected").attr("id"));
+				
+				// make sure that the group's inputs are disabled
+				$('#groupName').prop('disabled', true);
+				$('#groupDescription').prop('disabled', true);
+				
+				getGroup(); // load the specified group
+				getSensorsFromId(); // load the group's sensors
+			});
+			
+			$('#searchInput').keyup(function() {
+				searchSensor();
+			});
+		});
+	</script>
+	<script src="js/script.js"></script>
+	<!-- HTML5 shim for IE backwards compatibility -->
+    <!--[if lt IE 9]>
+    	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+
+<body>
+<!-- Début de la barre de navigation -->
+<div class="navbar navbar-fixed-top">
+	<div class="navbar-inner">
+    	<div class="container-fluid">
+        	<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="#">EnOcean</a>
+            <div class="nav-collapse collapse">
+            	<p class="navbar-text pull-right">
+              		Logged in as <a href="" class="navbar-link"><span id="connectedUser">Username</span></a> (<a onClick="logout();">disconnect</a>)
+            	</p>
+            	<ul class="nav">
+                	<li class="active"><a href="configuration.html">Configuration</a></li>
+                    <li><a href="data_visualization.html">Data visualization</a></li>
+                    <li><a href="user.html">Users management</a></li>
+            	</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Fin de la barre de navigation -->
+<!-- Début du conteneur de la page -->
+<div class="container-fluid">
+	<div class="row-fluid">
+    	<!-- Début du menu vertical -->
+    	<div class="span3">
+        	<div class="well sidebar-nav">
+            	<ul class="nav nav-list">
+             		<li class="nav-header">Configuration</li>
+              		<li><a href="#gateway">Gateway</a></li>
+              		<li><a href="#enocean">Enocean</a></li>
+            	</ul>
+			</div>
+        	<img class="visible-desktop" src="img/logo_enocean.jpg" alt="EnOcean" />
+            <br />
+            <img class="visible-desktop" src="img/logo_eif.png" alt="EIF" />
+        </div>
+        <!-- Fin du menu vertical -->
+        <!-- Début du contenu de la page -->
+    	<div class="span9">
+        	<!-- Début de la config du Gateway -->
+            <div class="row-fluid">
+        	<form>
+            	<fieldset>
+            	<legend>Gateway</legend><a id="gateway"></a>
+                <div class="row-fluid">
+               		<div id="alertConfigSuccess" class="alert alert-success">
+                    	<button type="button" class="close" onClick="$(this).parent().hide();">&times;</button>
+						<strong>Well done!</strong> Your changes have been saved.
+   				  	</div>
+                  	<div id="alertConfigError" class="alert alert-error">
+                    	<button type="button" class="close" onClick="$(this).parent().hide();">&times;</button>
+						<strong>Try again!</strong> An error has occured.
+   					</div>
+                </div>
+            	<div class="row-fluid">
+                    <div class="span6">
+                        <label for="dnsZone">DNS zone :</label>
+                        <input type="text" id="dnsZone" class="span12" placeholder="DNS zone ..." disabled>
+                    </div>
+                    <div class="span6">
+                        <label for="dnsIp">DNS IP :</label>
+                        <input type="text" id="dnsIp" class="span12" placeholder="DNS IP ..." disabled>
+                    </div>
+				</div>
+                <div class="row-fluid">
+                	<div id="configButtons" class="span12 text-right">
+                		<button class="btn" type="button" onClick="editConfig();">Edit</button>
+                    </div>
+                </div>
+                </fieldset>
+         	</form>
+            </div>
+            <!-- Fin de la config du Gateway -->
+            <!-- Début de la config Enocean -->
+            <div class="row-fluid">
+            	<form>
+                	<fieldset>
+                    <legend>Enocean</legend><a id="enocean"></a>
+                    <div class="row-fluid">
+               			<div id="alertGroupSuccess" class="alert alert-success">
+                    		<button type="button" class="close" onClick="$(this).parent().hide();">&times;</button>
+							<strong>Well done!</strong> Your changes have been saved.
+   				  		</div>
+                  		<div id="alertGroupError" class="alert alert-error">
+                    		<button type="button" class="close" onClick="$(this).parent().hide();">&times;</button>
+							<strong>Try again!</strong> An error has occured.
+   						</div>
+                        <div id="alertNoSensorError" class="alert alert-info">
+                			<button type="button" class="close" onClick="$(this).parent().hide();">&times;</button>
+							<strong>Heads up!</strong> This group doesn't contain any sensors.
+						</div>
+                        <div id="alertNoGroupError" class="alert alert-info">
+                			<button type="button" class="close" onClick="$(this).parent().hide();">&times;</button>
+							<strong>Heads up!</strong> The database doesn't contain any groups.
+						</div>
+                	</div>
+                    <div class="row-fluid">
+                    	<div class="span5">
+                        	<label for="groups">Group(s) :</label>
+                            <select name="groups" id="groups" class="span12" size="5">
+                            </select>
+                            <div class="row-fluid">
+                				<div class="span12 text-right">
+                                	<a href="#addGroup" role="button" class="btn" data-toggle="modal">Add group</a>
+                    			</div>
+                			</div>
+                        </div>
+                        <div class="span7">
+                        	<label>Group information :</label>
+                            <label for="groupName">Name :</label>    
+                        	<input type="text" id="groupName" class="span12" placeholder="Name ..." disabled>
+                            <label for="groupDescription">Description :</label>
+                        	<input type="text" id="groupDescription" class="span12" placeholder="Description ..." disabled>
+                            <label for="groupLastModification">Last modification :</label>
+                        	<input type="text" id="groupLastModification" class="span12" placeholder="Last modification ... by ..." disabled>
+                    		<div class="row-fluid">
+                    			<div id="groupButtons" class="span12 text-right">
+                    			</div>
+                    		</div>
+                        </div>
+                    </div>
+                    </fieldset>
+                </form>
+            </div>
+            <!-- Fin de la config Enocean -->
+            <!-- Début de la config des capteurs -->
+            <div id="groupLegend" class="row-fluid">
+            </div>
+            <div class="row-fluid">
+            	<div id="sensors" class="span12">
+                </div>
+            </div>
+            <!-- Fin de la config des capteurs -->
+		</div>
+        <!-- Fin du contenu de la page -->
+    </div>
+    <!-- Fin de la ligne principale -->
+</div>
+<!-- Fin du conteneur de la page -->
+<!-- Début des pop-up -->
+<div id="addGroup" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3>Add group</h3>
+	</div>
+	<div class="modal-body">
+    	<div class="row-fluid">
+            <label for="addGroupName">Name :</label>    
+            <input type="text" id="addGroupName" class="span12" placeholder="Name ...">
+            <label for="addGroupDescription">Description :</label>
+            <input type="text" id="addGroupDescription" class="span12" placeholder="Description ...">
+        </div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+		<button class="btn btn-primary" onClick="addGroup();$(this).parent().parent().modal('hide');">Save</button>
+	</div>
+</div>
+
+<div id="manageLocation" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3>Manage location</h3>
+	</div>
+	<div class="modal-body">
+    	<div class="row-fluid">
+            <label for="locationSelectedPath">Selected location :</label>
+        	<input type="text" id="locationSelectedPath" class="span12" placeholder="Selected location path ..." disabled value="">
+        </div>
+        <div id="locations" class="row-fluid">
+        </div>
+        <div id="editLocation" class="row-fluid"> 
+    		<!-- Name and location type inputs will come here -->
+        </div>
+        <div class="row-fluid">
+        	<div id="locationButtons" class="span12 text-left">
+            	<!-- The bunttons will come here -->
+            </div>
+        </div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <button class="btn btn-primary" onClick="saveLocation(); $(this).parent().parent().modal('hide');">Save</button>
+	</div>
+</div>
+
+<div id="manageMeasure" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3>Types of measurements available</h3>
+	</div>
+	<div class="modal-body">
+    	<div class="row-fluid">
+        	<div id="measureTypesAvailable" class="span12">
+            </div>
+        </div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <button class="btn btn-primary" onClick="saveMeasureTypes(); $(this).parent().parent().modal('hide');">Save</button>
+	</div>
+</div>
+
+<div id="addSensor" class="modal hide fade modal-sensor" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="myModalLabel">Add sensor</h3>
+	</div>
+	<div class="modal-body">
+    	<div class="accordion" id="accordionSensor">
+			<div class="accordion-group">
+				<div class="accordion-heading">
+					<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionSensor" href="#collapseOne">Select an existing sensor</a>
+				</div>
+				<div id="collapseOne" class="accordion-body collapse">
+					<div class="accordion-inner">
+						<div class="row-fluid">
+                        	<div class="span12">
+                            	<form class="form-search">
+    								<div class="input-append">
+    									<input type="text" id="searchInput" class="span10 search-query">
+    									<button type="button" class="btn">Search</button>
+    								</div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                        	<div id="searchSensor" class="span12">
+                            </div>
+                        </div>
+					</div>
+				</div>
+			</div>
+			<div class="accordion-group">
+				<div class="accordion-heading">
+					<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionSensor" href="#collapseTwo" onClick="$('#sensorId').val(0);">Create a new sensor</a>
+				</div>
+				<div id="collapseTwo" class="accordion-body collapse">
+					<div class="accordion-inner">
+                    	<div class="row-fluid">
+							<div class="span6">
+                            	<label for="sensorName0">Name :</label>
+                                <input type="text" id="sensorName0" class="span12" placeholder="Name ...">
+                                <label for="sensorDescription0">Description :</label>
+                                <input type="text" id="sensorDescription0" class="span12" placeholder="Description ...">
+                                <label for="sensorManufacturer0">Manufacturer :</label>
+                                <select id="sensorManufacturer0" class="span12"></select>
+                                <label for="sensorPath0">Location :</label>
+                                <input type="text" id="sensorPath0" class="span12" placeholder="Location ..." onClick="manageLocation();">
+								<!-- hidden input to store the location id -->
+                    			<input type="hidden" id="sensorLocationId0">
+                    			<input type="hidden" id="dns">
+								<label>Types of measurements :</label>
+                                <span id="measureTypeCheckboxes0">
+									-
+                                </span>
+							</div>
+							
+                            <div class="span6">
+                            	<label for="sensorEepRorg0">EEP rorg :</label>
+                                <select id="sensorEepRorg0" class="span12" onChange="getEepFunctions();"></select>
+                                <label for="sensorEepFunction0">EEP function :</label>
+                                <select id="sensorEepFunction0" class="span12" onChange="getEepTypes();"></select>
+                                <label for="sensorEepType0">EEP type :</label>
+                                <select id="sensorEepType0" class="span12" onChange="getMeasureTypes();"></select>
+                                <label for="sensorAddress0">Address :</label>
+                                <input type="text" id="sensorAddress0" class="span12" placeholder="Address ...">
+                                <div class="row-fluid">
+                                	<div class="span6">
+                                    	<label>Hybrid mode :</label>
+                                        <label class="radio inline"><input type="radio" id="sensorHybridTrue0" name="sensorHybridRadio0" value="true" checked> Yes </label>
+                                        <label class="radio inline"><input type="radio"id="sensorHybridFalse0" name="sensorHybridRadio0" value="false"> No </label>
+									</div>
+                                    <div class="span6">
+                                        <label>Actuator :</label>
+                                        <label class="radio inline"><input type="radio" id="sensorActuatorTrue0" name="sensorActuatorRadio0" value="true" checked> Yes </label>
+                                        <label class="radio inline"><input type="radio"id="sensorActuatorFalse0" name="sensorActuatorRadio0" value="false"> No </label>
+                                    </div>
+								</div>
+                                
+							</div>
+						</div>
+                        
+                        <div class="row-fluid">
+                        	<div class="span12 text-right">
+                                <button type="button" class="btn btn-primary" onClick="createSensor();">Create</button>
+							</div>
+						</div>
+                        
+					</div>
+				</div>
+			</div>
+            <div class="accordion-group">
+				<div class="accordion-heading">
+					<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionSensor" href="#collapseTree" onClick="$('#sensorId').val(-1); getSensorsInLearnMode();">Select recently discovered devices</a>
+				</div>
+				<div id="collapseTree" class="accordion-body collapse">
+					<div class="accordion-inner">
+                    	<div class="row-fluid">
+                        	<div class="span11">
+                        		<!-- show the sensor(s) in learn mode -->
+                            	<select class="span12" name="sensorsInLearnMode" id="sensorsInLearnMode" onChange="updateLearnSensorInfo();">
+                            	</select>
+                            </div>
+                            <div class="span1">
+                            	<a onClick="getSensorsInLearnMode();" class="btn"><i class="icon-refresh"></i></a>
+                        	</div>
+                      	</div>
+                        
+                        <div class="row-fluid">
+                            <div class="span6">
+                            	<label for="sensorName-1">Name :</label>
+                                <input type="text" id="sensorName-1" class="span12" placeholder="Name ...">
+                                <label for="sensorDescription-1">Description :</label>
+                                <input type="text" id="sensorDescription-1" class="span12" placeholder="Description ...">
+                                <label for="sensorManufacturer-1">Manufacturer :</label>
+                                <select id="sensorManufacturer-1" class="span12">
+                                	<option>Manufacturer ...</option>
+                                </select>
+                                <label for="sensorPath-1">Location :</label>
+                                <input type="text" id="sensorPath-1" class="span12" placeholder="Location ..." onClick="manageLocation();">
+								<!-- hidden input to store the location id -->
+                    			<input type="hidden" id="sensorLocationId-1">
+								<label>Types of measurements :</label>
+                                <span id="measureTypeCheckboxes-1">
+									-
+                                </span>
+							</div>
+							
+                            <div class="span6">
+                            	<label for="sensorEepRorg-1">EEP rorg :</label>
+                                <select id="sensorEepRorg-1" class="span12" onChange="getEepFunctions();">
+                                	<option>EEP Rorg ...</option>
+                                </select>
+                                <label for="sensorEepFunction-1">EEP function :</label>
+                                <select id="sensorEepFunction-1" class="span12" onChange="getEepTypes();">
+                                	<option>EEP Function ...</option>
+                                </select>
+                                <label for="sensorEepType-1">EEP type :</label>
+                                <select id="sensorEepType-1" class="span12" onChange="getMeasureTypes();">
+                                	<option>EEP Type ...</option>
+                                </select>
+                                <label for="sensorAddress-1">Address :</label>
+                                <input type="text" id="sensorAddress-1" class="span12" placeholder="Address ...">
+                                <div class="row-fluid">
+                                	<div class="span6">
+                                    	<label>Hybrid mode :</label>
+                                        <label class="radio inline"><input type="radio" id="sensorHybridTrue-1" name="sensorHybridRadio-1" value="true" checked> Yes </label>
+                                        <label class="radio inline"><input type="radio"id="sensorHybridFalse-1" name="sensorHybridRadio-1" value="false"> No </label>
+									</div>
+                                    <div class="span6">
+                                        <label>Actuator :</label>
+                                        <label class="radio inline"><input type="radio" id="sensorActuatorTrue-1" name="sensorActuatorRadio-1" value="true" checked> Yes </label>
+                                        <label class="radio inline"><input type="radio"id="sensorActuatorFalse-1" name="sensorActuatorRadio-1" value="false"> No </label>
+                                    </div>
+								</div>
+                        	</div>
+                        </div>
+                        
+                         <div class="row-fluid">
+                        	<div class="span12 text-right">
+                                <button type="button" class="btn btn-primary" onClick="createLearnSensor();">Create</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+	</div>
+</div>
+<!-- Fin des pop-up -->
+<!-- Hidden inputs -->
+<input type="hidden" id="noCollapse" value="0">
+<input type="hidden" id="noAccordion" value="1">
+<input type="hidden" id="sensorId" value="0">
+<input type="hidden" id="groupId" value="0">
+<input type="hidden" id="locationId" value="0">
+<script src="js/bootstrap.min.js"></script>
+</body>
+</html>

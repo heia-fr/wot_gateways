@@ -1,0 +1,276 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	background-color: #E8E8E8;
+	color: #B8B8B8;
+	font-size: 1em;
+}
+
+.clear {
+	clear: both;
+}
+
+.dark {
+	color: #787878;
+	text-transform: uppercase;
+}
+
+/*			Progressbar			*/
+#popupBg {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.6); 
+	z-index: 3;
+}
+
+#popupContainer {
+	width: 250px;
+	height: 90px;
+	margin: -45px 0 0 -125px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	background-color: rgba(255, 255, 255, 0.75); 
+	text-align: center;
+	border-top-right-radius: 4px; -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px;
+	border-top-left-radius: 4px; -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px;
+	border-bottom-right-radius: 4px; -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px; -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px;
+}
+
+#popupContainer h2 {
+	color: #787878;
+	padding: 15px 0 10px 0;
+	text-align: center;
+}
+
+#progressBar {
+	width: 220px;
+}
+
+/*			CSS de base			*/
+#container {
+	margin: 0 auto;
+	width: 800px;
+}
+
+header img {
+	border: 0;
+	float: right;
+	padding: 10px 0 0 15px;
+}
+
+h1 {
+	color: #B8B8B8;
+	padding: 10px 0 10px 0;
+	font-size: 2em;
+}
+
+/*			Bouton d'input			*/
+.button {
+	border: 1px solid #B8B8B8;
+	background-color: white;
+	padding: 1px 7px 1px 7px;
+	border-top-right-radius: 4px; -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px;
+	border-top-left-radius: 4px; -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px;
+	border-bottom-right-radius: 4px; -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px; -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px;
+}
+
+.button:hover {
+	border: 1px solid #33CC00;
+	background-color: #33CC00;
+}
+
+#content input.button:hover {
+	color: white;
+}
+
+#content input.button {
+	color: #B8B8B8;
+}
+
+.refererTable input.button {
+	padding: 1px 7px 1px 7px;
+}
+
+.refererTable input.button:hover {
+	color: white;
+	background-color: red;
+	border: 1px solid red;
+}
+
+/*			Menu en onglets			*/
+ul {
+	width: auto;
+	list-style: none;
+	position: relative;
+	z-index: 2;
+	top: 1px;
+	display: table;
+	font-size: 0.8em;
+}
+
+ul li {
+	float: left;
+}
+
+ul li a, ul li a:visited {
+	background-color: #D8D8D8;
+	color: white;
+	display: block;
+	padding: 6px 15px;
+	text-decoration: none;
+	border-left: 1px solid #B8B8B8;
+	border-top: 1px solid #B8B8B8;
+	border-right: 1px solid #B8B8B8;
+	border-top-right-radius: 4px; -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px;
+	border-top-left-radius: 4px; -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px;
+}
+
+ul li a.selected {
+	border-bottom: 1px solid white;
+	color: #B8B8B8 ;
+	background-color: white;
+}
+
+ul li a:hover {
+	color: #B8B8B8 ;
+	background-color: white;
+}
+
+/*			CSS pour le contenu de la page			*/
+#content {
+	height: auto;
+	background: white;
+	border: 1px solid #B8B8B8;
+	z-index: 1;
+	padding: 15px 20px 15px 15px;
+	border-top-right-radius: 4px; -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px; -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px; -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px;
+}
+
+#content h2 {
+	padding: 5px 0 5px 0;
+	margin-bottom: 10px;
+	border-bottom: 1px dashed grey;
+	text-align: right;
+	font-size: 1.6em;
+}
+
+#content h3 {
+	padding: 10px 0 5px 0;
+	font-size: 1.3em;
+	font-style: italic;
+}
+
+#content img {
+	padding-right: 25px;
+}
+
+#content .rightColumn {
+	width: 63%;
+	float: right;
+}
+
+#content .leftColumn {
+	width: 35%;
+	float: left;
+}
+
+/*			CSS pour la page de configuration.html			*/
+#configurationTable {
+	width: 100%;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+#configurationTable td.configurationLabel {
+	width: 21%;
+}
+
+#configurationTable td.configurationInput {
+	width: 27%;
+	text-align: right;
+}
+
+#configurationTable td.space {
+	width: 4%;
+}
+
+#configurationTable input, #configurationTable select, #groups select {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	color: #787878;
+}
+
+#configurationTable td {
+	line-height: 2;
+	vertical-align: middle;
+	padding: 0;
+	margin: 0;
+}
+
+#knxProFileLabel {
+	padding-right: 15px;
+}
+
+/*			CSS pour la page data_subscribers.html			*/
+.refererTable {
+	width: 100%;
+	padding: 15px 0 15px 0;
+}
+
+.refererTable td {
+	line-height: 1.2;
+	vertical-align: middle;
+	padding: 0;
+	margin: 0;
+}
+
+.refererTable th.referer {
+	width: 79%;
+	text-align: left;
+}
+
+.refererTable th.days, .refererTable td.days  {
+	width: 13%;
+	text-align: center;
+}
+
+.refererTable th.delete, .refererTable td.delete {
+	width: 5%;
+	text-align: right;
+}
+
+.refererTable td.referer, .refererTable td.days {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	color: #787878;
+}
+
+.refererTable td.delete input {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	color: red;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+/*			CSS pour la page log.html			*/
+#logArea {
+	height: 250px;
+	width: 90%;
+	padding: 10px;
+	margin-top: 5px;
+	border: 1px solid #B8B8B8;
+	font-size: 0.6em;
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	color: #787878;
+}

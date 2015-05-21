@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>EnOcean  - Users management</title>
+	<link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap-responsive.css" rel="stylesheet" type="text/css">
+   	<link href="css/style.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery-latest.js"></script>
+    <script src="js/jquery.cookie.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#connectedUser').html($.cookie('EnoUsr'));
+			
+			getUser(); // get the connected user's info
+			
+			var isAdmin = $.cookie('EnoIsAd');
+			
+			// if the connected user isn't an admin, he can't see the manage users table
+			if (isAdmin == "true") {
+				getUsers(); // load the users' table
+			} else {
+				$('#usersTable').parent().parent().hide();
+			}
+		});
+	</script>
+	<script src="js/script.js"></script>
+	<!-- HTML5 shim for IE backwards compatibility -->
+    <!--[if lt IE 9]>
+    	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+
+<body>
+<!-- Début de la barre de navigation -->
+<div class="navbar navbar-fixed-top">
+	<div class="navbar-inner">
+    	<div class="container-fluid">
+        	<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="#">EnOcean</a>
+            <div class="nav-collapse collapse">
+            	<p class="navbar-text pull-right">
+              		Logged in as <a href="" class="navbar-link"><span id="connectedUser">Username</span></a> (<a onClick="logout();">disconnect</a>)
+            	</p>
+            	<ul class="nav">
+                	<li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="data_visualization.html">Data visualization</a></li>
+                    <li class="active"><a href="user.html">Users management</a></li>
+            	</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Fin de la barre de navigation -->
+<!-- Début du conteneur de la page -->
+<div class="container-fluid">
+	<div class="row-fluid">
+    	<!-- Début du menu vertical -->
+    	<div class="span3">
+        	<div class="well sidebar-nav">
+            	<ul class="nav nav-list">
+             		<li class="nav-header">Users management</li>
+              		<li><a href="#users">Users management</a></li>
+              		<li><a href="#profile">My profile</a></li>
+            	</ul>
+			</div>
+        	<img class="visible-desktop" src="img/logo_enocean.jpg" alt="EnOcean" />
+            <br />
+            <img class="visible-desktop" src="img/logo_eif.png" alt="EIF" />
+        </div>
+        <!-- Fin du menu vertical -->
+        <!-- Début du contenu de la page -->
+    	<div class="span9">
+        	<!-- Début de la gestion des utilisateurs -->
+            <div class="row-fluid">
+            	<fieldset>
+            	<legend>Users management</legend><a id="users"></a>
+                <table id="usersTable" class="table table-hover table-striped">
+                	<!-- The user's table will comme here -->
+                </table>
+                <button type="button" class="btn" onClick="addUser();">Add a user</button>
+                </fieldset>
+                <br />
+            </div>
+            <!-- End of ussers management -->
+            <!-- start of my profile -->
+            <div class="row-fluid">
+            	<fieldset>
+            	<legend>My profile</legend><a id="profile"></a>
+                <div class="row-fluid">
+                	<div class="span6">
+                    	<label for="firstName">First name :</label>
+                        <input type="text" id="firstName" class="span12" placeholder="First name ..." disabled>
+                        <label for="username">Username :</label>
+                        <input type="text" id="username" class="span12" placeholder="Username ..." disabled>
+                        <label for="password">Password :</label>
+                        <input type="password" id="password" class="span12" placeholder="Password ..." disabled>
+                    </div>
+                    <div class="span6">
+                        <label for="lastName">Last name :</label>
+                        <input type="text" id="lastName" class="span12" placeholder="Last name ..." disabled>
+                        <label for="email">Email :</label>
+                        <input type="text" id="email" class="span12" placeholder="First name ..." disabled>	
+                    </div>
+				</div>
+                <div class="row-fluid">
+                	<div class="span12 text-right">
+                    	<div id="profileButtons" class="btn-group">
+                        	<!-- The buttons "Edit" & "Delete" will come here -->
+                    	</div>
+					</div>
+    			</div>
+                </fieldset>
+            </div>
+            <!-- End of my profile -->
+		</div>
+        <!-- Fin du contenu de la page -->
+    </div>
+    <!-- Fin de la ligne principale -->
+</div>
+<!-- Fin du conteneur de la page -->
+<!-- Début des pop-up -->
+<div id="manageUser" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="usrTitle">Manage user</h3>
+	</div>
+	<div class="modal-body">
+    	<div class="row-fluid">
+        	<div class="span6">
+            	<label for="usrFirstName">First name :</label>
+                <input type="text" id="usrFirstName" class="span12" placeholder="First name ..." disabled>
+                <label for="usrUsername">Username :</label>
+                <input type="text" id="usrUsername" class="span12" placeholder="Username ..." disabled>
+			</div>
+            <div class="span6">
+            	<label for="usrLastName">Last name :</label>
+                <input type="text" id="usrLastName" class="span12" placeholder="Last name ..." disabled>
+                <label for="usrPassword">Password :</label>
+                <input type="password" id="usrPassword" class="span12" placeholder="Password ..." disabled>
+			</div>
+		</div>
+        <div class="row-fluid">
+        	<div class="span12">
+            	<label for="usrEmail">Email :</label>
+                <input type="email" id="usrEmail" class="span12" placeholder="Email ..." disabled>	
+            </div>
+        </div>
+        <div id="statusDiv" class="row-fluid">
+        	<!-- The radio buttons will come here -->
+        </div>
+        <div id="accountDiv" class="row-fluid">
+        	<!-- The ratio buttons will come here -->
+        </div>
+	</div>
+	<div id="usrButtons" class="modal-footer">
+    	<!-- The buttons will come here -->
+	</div>
+</div>
+<!-- Fin des pop-up -->
+<script src="js/bootstrap.min.js"></script>
+</body>
+</html>
