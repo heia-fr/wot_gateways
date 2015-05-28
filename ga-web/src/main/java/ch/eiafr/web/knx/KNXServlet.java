@@ -130,18 +130,6 @@ public class KNXServlet extends HttpServlet {
 		String url = knxRequest.getUrl();
 		logger.debug("URL: " + url);
 		switch (knxRequest.getRequest()) {
-		case Value:
-			logger.debug("Post value");
-			try {
-				knxManagement.writeDatapoint(datapoint, payload);
-				response.setStatus(HttpServletResponse.SC_OK);
-			} catch (Exception e1) {
-				logger.error("Error to write data (" + payload
-						+ ") to datapoint " + url);
-				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				return;
-			}
-			break;
 		case Register:
 			logger.debug("Register a callback " + payload);
 			try {
@@ -200,6 +188,18 @@ public class KNXServlet extends HttpServlet {
 		String url = knxRequest.getUrl();
 		logger.debug("URL: " + url);
 		switch (knxRequest.getRequest()) {
+		case Value:
+			logger.debug("Put value");
+			try {
+				knxManagement.writeDatapoint(datapoint, payload);
+				response.setStatus(HttpServletResponse.SC_OK);
+			} catch (Exception e1) {
+				logger.error("Error to write data (" + payload
+						+ ") to datapoint " + url);
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				return;
+			}
+			break;
 		case Storage:
 			logger.debug("Add storage " + payload + " " + referer + " "
 					+ knxRequest.getAction());

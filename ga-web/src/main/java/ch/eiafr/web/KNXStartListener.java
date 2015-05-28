@@ -53,12 +53,6 @@ public class KNXStartListener implements ServletContextListener {
 		
 		KNXObserver observer = new KNXObserver();
 		try {
-			// long start = System.currentTimeMillis();
-			// knxManagement.generateXMLDatapoints("/home/LESO_310310.knxproj",
-			// "/home/KNXTransformer.xsl", "/home/LESO.xml");
-			// long stop = System.currentTimeMillis();
-			// logger.debug("Time (ms): " + (stop - start));
-			// knxManagement.initDatapointLocator("/home/LESO.xml");
 			knxStorage.openConnection("com.mysql.jdbc.Driver", KNXConfig.getDBUser(), KNXConfig.getDBPassword(), KNXConfig.getDBUrl());
 			knxManagement.initDatapointLocator(KNXConfig.getDatapointFilePath()+"/datapoints.xml");
 			knxManagement.initDatapointComm(KNXConfig.getIPGateway(), KNXConfig.getKNXAddress());
